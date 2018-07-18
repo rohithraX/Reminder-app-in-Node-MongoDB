@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JS reminder app</title>
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+    crossorigin="anonymous">
+</head>
+
+<body>
+  <div class="container">
+
+    <h1>JS ReminderApp
+      <small>PS2</small>
+    </h1>
+    <div class="jumbotron">
+      <h3 id="headerMain">Add New Reminder:</h3>
+      <form action="/new" method="post" id="issueInputForm">
+        <div class="form-group">
+          <label for="issueTitleInput">Title</label>
+          <input type="text" class="form-control" name="issueTitleInput" id="issueTitleInput" placeholder="Name the Reminder ...">
+        </div>
+        <div class="form-group">
+          <label for="issueDescInput">Description</label>
+          <input type="text" class="form-control" name="issueDescInput" id="issueDescInput" placeholder="Describe the Reminder ...">
+        </div>
+        <div class="form-group">
+          <label for="issueSeverityInput">Importance</label>
+          <select id="issueSeverityInput" class="form-control" name="issueSeverityInput">
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="issueDateInput">Date</label>
+          <input type="date" class="form-control" id="issueDateInput" name="issueDateInput" placeholder="Choose Date ...">
+        </div>
+        <button id="buttonMain" type="submit" class="btn btn-primary">Add</button>
+      </form>
+    </div>
+    <!-- <form action="/show" method = "get" >
+        <button type="button" onclick="fetchIssues()">Send</button>
+      </form> -->
+    <button  class="btn btn-primary" id="showButton" >show</button>
+
+    <div >
+    <ul id="somedata"></ul>
+  </div>
+    <script>console.log('Client-side code running');
+      var button = document.getElementById('showButton');
+      button.addEventListener('click', function (e) {
+        console.log('button was clicked');
+
+        fetch('/show', { method: 'GET' })
+          .then(function (response) {
+            if (response.ok) return response.json();
+            throw new Error('Request failed.');
+          })
+          .then(function (data) {
+            console.log(data);
+            var localdata = data;
+
+            var issuesList = document.getElementById('somedata');
+            var issues = data;
+            issuesList.innerHTML = '';
+
+            for (var i = 0; i < issues.length; i++) {
+              var id = issues[i]._id;
+              var title = issues[i].title;
+              var desc = issues[i].description;
+              var severity = issues[i].severity;
+              var date = issues[i].date;
+
+
+              issuesList.innerHTML += '<div class="well">' +
+                // '<h6>Issue ID: ' + id + '</h6>' +
+                '<h2><span class="label label-info">' + title + '</span></h2>' +
+                '<h3>' + desc + '</h3>' +
+                '<p><span class="glyphicon glyphicon-time"></span> ' + severity + '</p>' +
+                '<p><span class="glyphicon glyphicon-user"></span> ' + date + '</p>' +
+                '<a href="#" id = "updateB" onclick="updateIssue(\'' + id + '\')" class="btn btn-warning" name="commit">Update</a>' +
+
+                '<a href="#" id = "deleteB" onclick="deleteIssue(\'' + id + '\')" class="btn btn-danger" name="commit">Delete</a>' +
+                '</div>';
+            }
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+      });
+      function deleteIssue(lid) {
+        // const myRequest = new Request('/delete', {method: 'POST', body: '{"_id":"_id"}'});
+        // lid = JSON.stringify(lid);
+        console.log("hi deleting lol   " + lid);
+        // fetch('/delete', { method: 'post', body: '{"_id":\'' + lid + '\'}' })
+
+        var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance 
+        xmlhttp.open("POST", "/delete");
+        xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xmlhttp.send(JSON.stringify({ _id: lid }));
+      }
+      function updateIssue(lid) {
+
+        // const myRequest = new Request('/delete', {method: 'POST', body: '{"_id":"_id"}'});
+        // lid = JSON.stringify(lid);
+        console.log("hi upda lol   " + lid);
+        document.getElementById("headerMain").innerHTML = "UPDATE REMINDER";
+
+        document.getElementById("buttonMain").innerHTML = "UPDATE";
+
+        ////////////////////////////////
+        // var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance 
+        // xmlhttp.open("POST", "/update");
+        // xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        // xmlhttp.send(JSON.stringify({ _id: lid }));
+        // //xmlhttp.open("GET", "/update", true);
+        // // document.getElementById("issueTitleInput").value = xmlhttp.responseText;
+        // var body1 = xmlhttp.response;
+        // console.log(body1.title); 
+
+
+
+        var xhr = new XMLHttpRequest();
+
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState == XMLHttpRequest.DONE) {
+
+            // alert(xhr.responseText);
+            var received = xhr.responseText;
+
+            var objectStringArray = (new Function("return [" + received + "];")());
+            console.log(objectStringArray[0].title);
+
+            document.getElementById("issueTitleInput").value = objectStringArray[0].title;
+            document.getElementById("issueDescInput").value = objectStringArray[0].description;
+            document.getElementById("issueSeverityInput").value = objectStringArray[0].severity;
+            document.getElementById("issueDateInput").value = objectStringArray[0].date;
+
+          }
+        }
+        xhr.open("POST", "http://localhost:8080/update");
+        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xhr.send(JSON.stringify({ _id: lid }));
+
+      }
+      /////////////////////////
+        //document.getElementById('issueTitleInput').value = ("hellllllooooooooooo");
+
+        // fetch('/update', { method: 'GET'})//, body: '{"_id":\'' + lid + '\'}' })
+        //   .then(function (response) {
+        //     //console.log(data);
+        //     console.log("updating in index2222");
+        //     if (response.ok) return response.json();
+        //     throw new Error('Request failed.');
+        //   })
+        //   .then(function (data) {
+
+        // console.log("updating in index3333");
+
+        //     document.getElementById('issueTitleInput').value = ("hellllllooooooooooo");
+        //   });
+        // console.log("hi updating lol   " + lid);
+
+        // var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance 
+        // xmlhttp.open("POST", "/update");
+        // xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        // xmlhttp.send(JSON.stringify({ _id: lid }));
+        // //xmlhttp.open("GET", "/update", true);
+        // document.getElementById("issueTitleInput").value = xmlhttp.responseText;
+
+        //////////////////////////////////
+        // function loadDoc(url, cFunction) {
+        //   var xhttp;
+        //   xhttp = new XMLHttpRequest();
+        //   // xhttp.onreadystatechange = function () {
+        //   //   if (this.readyState == 4 && this.status == 200) {
+        //   //     cFunction(this);
+        //   //   }
+        //   // };
+        //   xhttp.open("GET", url, true);
+        //   xhttp.send();
+        // }
+        // function myFunction(xhttp) {
+        //   document.getElementById("demo").innerHTML =
+        //     xhttp.responseText;
+        // }
+        /////////////////////////////////////
+
+    </script>
+
+
+
+
+    <div class="col-lg-12">
+      <div id="issuesList">
+
+      </div>
+    </div>
+    <!-- <p id="issuesList"></p> -->
+
+
+
+  </div>
+  <!-- <script src="chance.js"></script> -->
+  <script src="https://chancejs.com/chance.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+    crossorigin="anonymous"></script>
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+    crossorigin="anonymous"></script>
+  <!-- <script src="mainh.js"></script> -->
+</body>
+
+</html>
